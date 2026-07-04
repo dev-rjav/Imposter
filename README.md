@@ -21,7 +21,6 @@ no database — just clone it, `npm install`, and play on your local network.
 - [Architecture notes](#architecture-notes)
 - [Available scripts](#available-scripts)
 - [Roadmap](#roadmap)
-- [Contributing](#contributing)
 - [License](#license)
 
 ---
@@ -174,14 +173,6 @@ the next server start.
 - [ ] Automated tests around room lifecycle and vote resolution
 - [ ] Optional category-pack selection from the lobby before starting
 - [ ] Reconnect support for players who briefly lose connection mid-round
-- [ ] "Play in person" pass-the-device mode
-
-Contributions toward any of these are very welcome — see below.
-
-## Contributing
-
-Bug reports, category-pack contributions, and pull requests are all welcome.
-Please read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a PR.
 
 ## License
 
