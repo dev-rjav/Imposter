@@ -1,0 +1,43 @@
+{
+  "name": "imposter-game",
+  "version": "1.0.0",
+  "description": "A real-time, browser-based social deduction party game. One player secretly gets a different word or question — describe, discuss, and vote out the imposter before time runs out.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "lint": "eslint .",
+    "test": "echo \"No automated tests yet — see CONTRIBUTING.md\" && exit 0"
+  },
+  "keywords": [
+    "game",
+    "party-game",
+    "social-deduction",
+    "imposter",
+    "multiplayer",
+    "websocket",
+    "express",
+    "nodejs"
+  ],
+  "author": "Rjav",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dev-rjav/Imposter"
+  },
+  "bugs": {
+    "url": "https://github.com/dev-rjav/Imposter"
+  },
+  "homepage": "https://github.com/dev-rjav/Imposter",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "ws": "^8.21.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.18.0"
+  }
+}

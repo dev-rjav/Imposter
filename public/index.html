@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Imposter — Guess Who's Lying</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Base ── */
+:root {
+  --bg: #000;
+  --surface: #0a0a0a;
+  --surface2: #111;
+  --border: #222;
+  --border2: #333;
+  --text: #fff;
+  --text-dim: rgba(255,255,255,0.55);
+  --text-dimmer: rgba(255,255,255,0.35);
+  --accent: #fff;
+  --red: #c0392b;
+  --green: #27ae60;
+  --yellow: #d4ac0d;
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'Inter', system-ui, sans-serif;
+  --mono: 'Courier New', monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  min-height: 100dvh;
+}
+
+/* ── Layout ── */
+#app {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 0 20px 60px;
+}
+
+/* ── Header ── */
+.site-header {
+  padding: 36px 0 24px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+}
+
+.site-title {
+  font-family: var(--serif);
+  font-size: clamp(2rem, 6vw, 2.8rem);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--text);
+  line-height: 1;
+}
+
+.site-title em {
+  font-style: italic;
+  font-weight: 400;
+}
+
+.site-sub {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+/* ── Screens ── */
+.screen { display: none; animation: appear 0.2s ease; }
+.screen.active { display: block; }
+
+@keyframes appear {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Section heading (Wikipedia-style) ── */
+.section-head {
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+  margin-bottom: 18px;
+  color: var(--text);
+}
+
+/* ── Prose text ── */
+p.lede {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+/* ── Inputs ── */
+label {
+  display: block;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+input[type=text], textarea {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 1rem;
+  padding: 11px 14px;
+  outline: none;
+  transition: border-color 0.15s;
+  border-radius: 0;
+  -webkit-appearance: none;
+}
+input[type=text]:focus, textarea:focus { border-color: var(--text); }
+input[type=text]::placeholder, textarea::placeholder { color: var(--text-dimmer); }
+textarea { resize: none; min-height: 72px; line-height: 1.5; }
+
+.input-group { margin-bottom: 16px; }
+
+.input-code {
+  font-family: var(--mono);
+  font-size: 1.5rem;
+  letter-spacing: 0.25em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  cursor: pointer;
+  padding: 11px 24px;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  width: 100%;
+}
+.btn:active { opacity: 0.8; }
+.btn:disabled { opacity: 0.38; cursor: not-allowed; }
+
+.btn-primary   { background: var(--text); color: var(--bg); border-color: var(--text); }
+.btn-primary:hover:not(:disabled) { background: #ddd; }
+.btn-outline   { background: transparent; color: var(--text); border-color: var(--border2); }
+.btn-outline:hover:not(:disabled) { border-color: var(--text); }
+.btn-danger    { background: var(--red); color: #fff; border-color: var(--red); }
+
+.btn-row { display: flex; gap: 10px; margin-top: 14px; }
+.btn-row .btn { flex: 1; }
+
+/* ── Room code display ── */
+.room-code-display {
+  font-family: var(--mono);
+  font-size: clamp(2.2rem, 8vw, 3.2rem);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-align: center;
+  border: 1px solid var(--border2);
+  padding: 20px;
+  background: var(--surface);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.15s;
+  margin-bottom: 6px;
+}
+.room-code-display:hover { border-color: var(--text); }
+
+.hint-text {
+  font-size: 0.75rem;
+  color: var(--text-dimmer);
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* ── Player list ── */
+.player-list { margin-bottom: 20px; }
+
+.player-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.player-row:first-child { border-top: 1px solid var(--border); }
+
+.player-init {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  color: var(--text);
+}
+
+.player-name-col { flex: 1; font-size: 0.95rem; }
+.player-name-col small { font-size: 0.72rem; color: var(--text-dim); display: block; }
+
+.player-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--text);
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+/* ── Word reveal card ── */
+.word-card {
+  border: 1px solid var(--border2);
+  padding: 28px 24px;
+  background: var(--surface);
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.category-eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 14px;
+}
+
+.your-word {
+  font-family: var(--serif);
+  font-size: clamp(2rem, 7vw, 2.8rem);
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 16px;
+}
+
+.role-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 14px;
+  border: 1px solid;
+  margin-bottom: 14px;
+}
+.role-badge.civilian { border-color: var(--border2); color: var(--text-dim); }
+.role-badge.imposter { border-color: #c0392b; color: #c0392b; }
+
+.role-hint {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  line-height: 1.55;
+  font-style: italic;
+  max-width: 380px;
+  margin: 0 auto;
+}
+
+/* ── Question card ── */
+.question-card {
+  border: 1px solid var(--border2);
+  padding: 22px 24px;
+  background: var(--surface);
+  margin-bottom: 24px;
+}
+
+.question-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+.question-text {
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.35;
+  font-style: italic;
+}
+
+/* ── Turn order table ── */
+.turn-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+}
+.turn-table tr { border-bottom: 1px solid var(--border); }
+.turn-table tr:first-child { border-top: 1px solid var(--border); }
+.turn-table td { padding: 9px 4px; }
+.turn-table .turn-num { color: var(--text-dim); width: 28px; font-family: var(--mono); font-size: 0.8rem; }
+.turn-table .turn-active { color: var(--text); font-weight: 600; }
+.turn-table .turn-done   { color: var(--text-dimmer); text-decoration: line-through; }
+.turn-table .turn-marker { text-align: right; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); }
+.turn-table .turn-marker.speaking { color: var(--text); }
+
+/* ── Description feed ── */
+.feed { margin-bottom: 20px; }
+
+.feed-entry {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.feed-entry:first-child { border-top: 1px solid var(--border); }
+
+.feed-name {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.feed-text {
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.feed-empty {
+  font-size: 0.85rem;
+  color: var(--text-dimmer);
+  font-style: italic;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Vote buttons ── */
+.vote-list { margin-bottom: 16px; }
+
+.vote-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.vote-row:first-child { border-top: 1px solid var(--border); }
+.vote-row:hover:not(.voted):not(.disabled) { background: var(--surface); margin: 0 -8px; padding: 10px 8px; }
+.vote-row.selected { color: var(--red); }
+.vote-row.disabled { cursor: not-allowed; opacity: 0.5; }
+
+.vote-init {
+  width: 30px; height: 30px;
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif);
+  font-size: 1rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.vote-name { flex: 1; font-size: 0.95rem; }
+.vote-check { font-size: 1rem; }
+
+/* ── Vote progress ── */
+.vote-progress {
+  height: 2px;
+  background: var(--border);
+  margin-bottom: 6px;
+}
+.vote-progress-fill {
+  height: 100%;
+  background: var(--text);
+  transition: width 0.4s ease;
+}
+.vote-status { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 20px; }
+
+/* ── Result ── */
+.result-hero {
+  text-align: center;
+  padding: 32px 0 28px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 28px;
+}
+
+.result-icon { font-size: 3rem; margin-bottom: 12px; }
+
+.result-verdict {
+  font-family: var(--serif);
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.result-verdict.win  { color: var(--text); }
+.result-verdict.lose { color: var(--red); }
+
+.result-desc { font-size: 0.9rem; color: var(--text-dim); max-width: 380px; margin: 0 auto; }
+
+.reveal-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.reveal-word {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+  padding: 6px 16px;
+  border: 1px solid var(--border2);
+}
+.reveal-word.majority { border-color: var(--border2); color: var(--text-dim); }
+.reveal-word.imposter-w { border-color: var(--red); color: var(--red); }
+
+.vs-text { font-size: 0.75rem; color: var(--text-dimmer); letter-spacing: 0.1em; }
+
+/* ── Reveal question row ── */
+.reveal-qs {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  padding: 16px 18px;
+  margin-top: 16px;
+}
+.reveal-qs .rq-row { padding: 6px 0; font-size: 0.88rem; }
+.reveal-qs .rq-label { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 2px; }
+.reveal-qs .rq-q { font-family: var(--serif); font-style: italic; font-size: 1rem; }
+.reveal-qs .rq-q.imposter-q { color: var(--red); }
+.reveal-qs hr { border: none; border-top: 1px solid var(--border); margin: 8px 0; }
+
+/* ── Waiting / spinner ── */
+.waiting {
+  text-align: center;
+  padding: 32px 0;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+.spinner {
+  display: inline-block;
+  width: 20px; height: 20px;
+  border: 1.5px solid var(--border2);
+  border-top-color: var(--text);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Your-turn indicator ── */
+.your-turn-bar {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.your-turn-bar .dot { width: 7px; height: 7px; background: var(--text); border-radius: 50%; }
+
+/* ── Word reminder bar ── */
+.word-bar {
+  border: 1px solid var(--border);
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  margin-bottom: 20px;
+}
+.word-bar strong { color: var(--text); font-weight: 600; }
+
+/* ── Divider ── */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-dimmer);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 20px 0;
+}
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Categories grid (home) ── */
+.cat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+.cat-cell {
+  background: var(--surface);
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+.cat-cell span { font-size: 1rem; margin-right: 6px; }
+
+/* ── Toast ── */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(60px);
+  background: var(--text);
+  color: var(--bg);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 9px 20px;
+  z-index: 200;
+  white-space: nowrap;
+  transition: transform 0.25s ease;
+  pointer-events: none;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); }
+
+/* ── Mobile ── */
+@media (max-width: 480px) {
+  #app { padding: 0 14px 60px; }
+  .site-header { padding: 24px 0 16px; }
+  .site-title { font-size: 1.9rem; }
+  .word-card { padding: 22px 16px; }
+  .question-card { padding: 16px; }
+  .room-code-display { font-size: 2rem; }
+}
+
+.word-reminder-persistent{
+  background: var(--surface);
+  border:1px solid var(--border2);
+  padding:18px;
+  margin-bottom:20px;
+  text-align:center;
+}
+.word-reminder-label{
+  font-size:.7rem;
+  text-transform:uppercase;
+  letter-spacing:.15em;
+  color:var(--text-dim);
+  margin-bottom:8px;
+}
+.word-reminder-value{
+  font-family:var(--serif);
+  font-size:2rem;
+  font-weight:700;
+}
+
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="site-header">
+    <div class="site-title">Im<em>pos</em>ter</div>
+    <div class="site-sub">A game of words, questions &amp; deception</div>
+  </header>
+
+  <!-- ── HOME ── -->
+  <div id="screen-home" class="screen active">
+    <h2 class="section-head">Join or Create a Room</h2>
+    <p class="lede">One player among you receives a different word or question. Describe yours, spot the liar, vote them out.</p>
+
+    <div class="input-group">
+      <label for="input-name">Your Name</label>
+      <input type="text" id="input-name" placeholder="e.g. Ravi" maxlength="20" autocomplete="off" autocorrect="off" />
+    </div>
+
+    <button class="btn btn-primary" onclick="createRoom()">Create Room</button>
+
+    <div class="divider">or join existing</div>
+
+    <div class="input-group">
+      <label for="input-code">Room Code</label>
+      <input type="text" id="input-code" class="input-code" placeholder="XXXX" maxlength="4"
+             autocomplete="off" autocorrect="off" autocapitalize="characters" />
+    </div>
+
+    <button class="btn btn-outline" onclick="joinRoom()">Join Room →</button>
+
+    <div style="margin-top:32px;">
+      <h2 class="section-head">Word &amp; Question Categories</h2>
+      <p class="lede">Each round draws from 110+ sets — never repeating within your last 20 games.</p>
+      <div class="cat-grid">
+        <div class="cat-cell"><span>✏️</span>Stationery</div>
+        <div class="cat-cell"><span>📚</span>Books &amp; Reading</div>
+        <div class="cat-cell"><span>🏨</span>Accommodation</div>
+        <div class="cat-cell"><span>🚌</span>Transport</div>
+        <div class="cat-cell"><span>🎸</span>Music</div>
+        <div class="cat-cell"><span>🏫</span>Education</div>
+        <div class="cat-cell"><span>🍕</span>Food &amp; Drinks</div>
+        <div class="cat-cell"><span>🐬</span>Animals</div>
+        <div class="cat-cell"><span>⚽</span>Sports</div>
+        <div class="cat-cell"><span>💻</span>Technology</div>
+        <div class="cat-cell"><span>🏛️</span>Places</div>
+        <div class="cat-cell"><span>👩‍⚕️</span>Professions</div>
+        <div class="cat-cell"><span>❓</span>Growing Up</div>
+        <div class="cat-cell"><span>❓</span>Daily Life</div>
+        <div class="cat-cell"><span>❓</span>Hobbies &amp; More</div>
+        <div class="cat-cell"><span>❓</span>30 Question Sets</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LOBBY ── -->
+  <div id="screen-lobby" class="screen">
+    <h2 class="section-head">Room</h2>
+
+    <div class="room-code-display" id="display-room-code" onclick="copyRoomCode()">----</div>
+    <div class="hint-text">Tap to copy — share this code with friends</div>
+
+    <h2 class="section-head">Players (<span id="player-count">0</span> / 10)</h2>
+    <div class="player-list" id="player-list"></div>
+
+    <div id="host-controls" style="display:none;">
+      <button class="btn btn-primary" id="btn-start" onclick="startGame()" disabled>Start Game</button>
+      <p class="lede" style="margin-top:8px;text-align:center;" id="start-hint">Waiting for at least 3 players.</p>
+    </div>
+    <div id="guest-waiting" style="display:none;" class="waiting">
+      <span class="spinner"></span>Waiting for host to start…
+    </div>
+  </div>
+
+  <!-- ── ASSIGNING ── -->
+  <div id="screen-assigning" class="screen">
+    <div class="waiting">
+      <div><span class="spinner"></span>Assigning roles…</div>
+      <div style="margin-top:12px;font-size:0.8rem;color:var(--text-dimmer);">Your word is being prepared</div>
+    </div>
+  </div>
+
+  <!-- ── WORD REVEAL ── -->
+  <div id="screen-word" class="screen">
+    <div id="word-card-wrap"></div>
+    <h2 class="section-head">Speaking Order</h2>
+    <table class="turn-table" id="order-list-word"></table>
+    <button class="btn btn-primary" onclick="proceedToDescribe()">Ready (5)</button>
+  </div>
+
+  <!-- ── DESCRIBING ── -->
+  <div id="screen-describing" class="screen">
+    <div class="word-reminder-persistent">
+      <div class="word-reminder-label">Your Secret</div>
+      <div id="persistent-word" class="word-reminder-value">—</div>
+      <div id="persistent-question-wrap" style="display:none;">
+        <div class="word-reminder-label">Question</div>
+        <div id="persistent-question" class="question-text"></div>
+      </div>
+    </div>
+
+    <div id="your-turn-section" style="display:none;">
+      <div class="your-turn-bar"><div class="dot"></div> Your turn to speak</div>
+      <div class="word-bar" id="word-reminder-bar">Your word: <strong id="word-reminder-val">—</strong></div>
+      <div id="question-reminder-bar" style="display:none;" class="question-card" style="margin-bottom:16px;">
+        <div class="question-label">Your question</div>
+        <div class="question-text" id="question-reminder-val">—</div>
+      </div>
+      <div class="input-group">
+        <label for="desc-input">Your answer / description</label>
+        <textarea id="desc-input" placeholder="Describe or answer without giving it away…" maxlength="240"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="submitDescription()">Submit →</button>
+    </div>
+
+    <div id="waiting-turn-section" style="display:none;">
+      <h2 class="section-head">Speaking Order</h2>
+      <table class="turn-table" id="order-list-live"></table>
+    </div>
+
+    <div style="margin-top:24px;">
+      <h2 class="section-head">Answers So Far</h2>
+      <div id="desc-feed" class="feed"><div class="feed-empty">Waiting for first speaker…</div></div>
+    </div>
+  </div>
+
+  <!-- ── VOTING ── -->
+  <div id="screen-voting" class="screen">
+    <h2 class="section-head">Vote — Who is the Imposter?</h2>
+    <div class="vote-progress"><div class="vote-progress-fill" id="vote-bar" style="width:0%"></div></div>
+    <div class="vote-status" id="vote-status">0 / 0 voted</div>
+
+    <div class="vote-list" id="vote-list"></div>
+
+    <h2 class="section-head">All Answers</h2>
+    <div id="vote-feed" class="feed"><div class="feed-empty">No answers yet.</div></div>
+  </div>
+
+  <!-- ── RESULT ── -->
+  <div id="screen-result" class="screen">
+    <div class="result-hero">
+      <div class="result-icon" id="result-icon">🎉</div>
+      <div class="result-verdict" id="result-verdict">—</div>
+      <div class="result-desc" id="result-desc">—</div>
+
+      <div class="reveal-row">
+        <div class="reveal-word majority" id="result-majority-word">—</div>
+        <div class="vs-text">vs</div>
+        <div class="reveal-word imposter-w" id="result-imposter-word">—</div>
+      </div>
+
+      <div id="result-question-reveal" style="display:none;" class="reveal-qs">
+        <div class="rq-row">
+          <div class="rq-label">Civilians were asked</div>
+          <div class="rq-q" id="rq-majority">—</div>
+        </div>
+        <hr />
+        <div class="rq-row">
+          <div class="rq-label">Imposter was asked</div>
+          <div class="rq-q imposter-q" id="rq-imposter">—</div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-head">The Imposter</h2>
+    <div class="player-list" id="imposter-reveal"></div>
+
+    <div id="host-result-controls" style="display:none;" class="btn-row">
+      <button class="btn btn-primary" onclick="playAgain()">Play Again</button>
+      <button class="btn btn-outline" onclick="backToLobby()">Lobby</button>
+    </div>
+    <div id="guest-result-waiting" style="display:none;" class="waiting">
+      <span class="spinner"></span>Waiting for host…
+    </div>
+  </div>
+
+</div><!-- #app -->
+
+<div id="toast"></div>
+
+<script>
+// ─── State ──────────────────────────────────────────────────────────────────
+let ws = null, myId = null, myRoomCode = null;
+let myWord = null, myQuestion = null, mySetType = null;
+let amIImposter = false, isHost = false;
+let roomState = null;
+let describeOrder = [], descriptions = [], myVote = null;
+let pingTimer = null, reconnTimer = null;
+
+// ─── WebSocket ───────────────────────────────────────────────────────────────
+function connect(onOpen) {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${proto}://${location.host}`);
+  ws.onopen  = () => { clearTimeout(reconnTimer); startPing(); if (onOpen) onOpen(); };
+  ws.onclose = () => { stopPing(); showToast('Disconnected — reconnecting…'); reconnTimer = setTimeout(() => connect(), 2500); };
+  ws.onerror = () => ws.close();
+  ws.onmessage = (e) => { try { handleMsg(JSON.parse(e.data)); } catch {} };
+}
+function send(o) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(o)); }
+function startPing() { pingTimer = setInterval(() => send({ type: 'PING' }), 20000); }
+function stopPing()  { clearInterval(pingTimer); }
+
+// ─── Message handler ─────────────────────────────────────────────────────────
+function handleMsg(msg) {
+  switch (msg.type) {
+    case 'ROOM_CREATED':
+    case 'ROOM_JOINED':
+      myId = msg.playerId; myRoomCode = msg.roomCode; roomState = msg.state;
+      isHost = msg.type === 'ROOM_CREATED';
+      showLobby(); break;
+
+    case 'PLAYER_JOINED':
+    case 'PLAYER_LEFT':
+      roomState = msg.state; updateLobby();
+      showToast(msg.type === 'PLAYER_JOINED' ? `${msg.player.name} joined` : `${msg.playerName} left`);
+      break;
+
+    case 'WORD_ASSIGNED':
+      roomState = msg.state; myWord = msg.word; myQuestion = msg.question;
+      mySetType = msg.setType; amIImposter = msg.isImposter;
+      describeOrder = msg.describeOrder; descriptions = []; myVote = null;
+      const pw=document.getElementById('persistent-word');
+      if(pw) pw.textContent=msg.word;
+      const pq=document.getElementById('persistent-question');
+      const pqw=document.getElementById('persistent-question-wrap');
+      if(pqw){
+        if(msg.question){ pqw.style.display='block'; if(pq) pq.textContent=msg.question; }
+        else { pqw.style.display='none'; }
+      }
+      showWordReveal(msg); break;
+
+    case 'PHASE_CHANGE':
+      roomState = msg.state;
+      if (msg.phase === 'describing') showDescribing(msg.currentDescriberId);
+      if (msg.phase === 'voting')     showVoting();
+      break;
+
+    case 'NEXT_DESCRIBER':
+      roomState = msg.state; updateDescribing(msg.currentDescriberId); break;
+
+    case 'DESCRIPTION_SUBMITTED':
+      roomState = msg.state;
+      descriptions.push({ name: msg.playerName, text: msg.description });
+      renderFeed('desc-feed'); renderFeed('vote-feed'); break;
+
+    case 'VOTE_CAST':
+      updateVoteBar(msg.voteCount, msg.totalPlayers); break;
+
+    case 'RESULT':
+      roomState = msg.state; showResult(msg); break;
+
+    case 'BACK_TO_LOBBY':
+      roomState = msg.state; myWord = null; myQuestion = null;
+      descriptions = [];
+      const pw2=document.getElementById('persistent-word');
+      const pqw2=document.getElementById('persistent-question-wrap');
+      if(pw2) pw2.textContent='—';
+      if(pqw2) pqw2.style.display='none';
+      showLobby(); break;
+
+    case 'ERROR':
+      showToast('⚠ ' + msg.message); break;
+  }
+}
+
+// ─── Screens ──────────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function showLobby() {
+  showScreen('lobby');
+  document.getElementById('display-room-code').textContent = myRoomCode;
+  updateLobby();
+}
+
+function updateLobby() {
+  if (!roomState) return;
+  const players = roomState.players;
+  isHost = !!players.find(p => p.id === myId)?.isHost;
+  document.getElementById('player-count').textContent = players.length;
+
+  const list = document.getElementById('player-list');
+  list.innerHTML = '';
+  players.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'player-row';
+    const isYou = p.id === myId;
+    row.innerHTML = `
+      <div class="player-init">${esc(p.name[0].toUpperCase())}</div>
+      <div class="player-name-col">
+        ${esc(p.name)}${isYou ? ' <em style="font-size:.75rem;color:var(--text-dim);">(you)</em>' : ''}
+        <small>${p.isHost ? '👑 Host' : 'Player'}</small>
+      </div>
+      <div class="player-dot"></div>
+    `;
+    list.appendChild(row);
+  });
+
+  if (isHost) {
+    document.getElementById('host-controls').style.display = 'block';
+    document.getElementById('guest-waiting').style.display = 'none';
+    const btn = document.getElementById('btn-start');
+    const hint = document.getElementById('start-hint');
+    if (players.length < 3) {
+      btn.disabled = true;
+      hint.textContent = `Need ${3 - players.length} more player${3 - players.length > 1 ? 's' : ''} to start.`;
+    } else {
+      btn.disabled = false;
+      hint.textContent = `${players.length} players ready. Host can start.`;
+    }
+  } else {
+    document.getElementById('host-controls').style.display = 'none';
+    document.getElementById('guest-waiting').style.display = 'block';
+  }
+}
+
+function showWordReveal(msg) {
+  showScreen('assigning');
+  setTimeout(() => {
+    const wrap = document.getElementById('word-card-wrap');
+    const isQ = msg.setType === 'question';
+
+    if (isQ) {
+      wrap.innerHTML = `
+        <div class="word-card">
+          <div class="category-eyebrow">${esc(msg.category)}</div>
+          <div class="your-word">${esc(msg.word)}</div>
+          <div class="role-badge ${msg.isImposter ? 'imposter' : 'civilian'}">${msg.isImposter ? 'Imposter' : 'Civilian'}</div>
+          <div class="role-hint">${msg.isImposter
+            ? 'You have a different question. Answer convincingly — they must not know yours differs.'
+            : 'You share the same question as the others. Answer naturally and spot who sounds off.'
+          }</div>
+        </div>
+        <div class="question-card">
+          <div class="question-label">Your question this round</div>
+          <div class="question-text">${esc(msg.question)}</div>
+        </div>
+      `;
+    } else {
+      wrap.innerHTML = `
+        <div class="word-card">
+          <div class="category-eyebrow">${esc(msg.category)}</div>
+          <div class="your-word">${esc(msg.word)}</div>
+          <div class="role-badge ${msg.isImposter ? 'imposter' : 'civilian'}">${msg.isImposter ? 'Imposter' : 'Civilian'}</div>
+          <div class="role-hint">${msg.isImposter
+            ? 'Your word differs from everyone else\'s. Blend in — describe something close enough to fool them.'
+            : 'You share this word with the group. Describe it well, but don\'t make it too obvious.'
+          }</div>
+        </div>
+      `;
+    }
+
+    renderOrderTable('order-list-word', describeOrder, null);
+    showScreen('word');
+  }, 1800);
+}
+
+
+function proceedToDescribe() {
+  let btn = event?.target;
+  if(!btn) return;
+
+  let timeLeft = 5;
+  btn.disabled = true;
+  btn.textContent = `Ready (${timeLeft})`;
+
+  const timer = setInterval(() => {
+    timeLeft--;
+    if(timeLeft > 0){
+      btn.textContent = `Ready (${timeLeft})`;
+    } else {
+      clearInterval(timer);
+      btn.textContent = 'Waiting for round...';
+      showScreen('assigning');
+    }
+  }, 1000);
+}
+
+
+function showDescribing(currentId) {
+  showScreen('describing');
+  updateDescribing(currentId);
+}
+
+function updateDescribing(currentId) {
+  const isMyTurn = currentId === myId;
+  document.getElementById('your-turn-section').style.display   = isMyTurn ? 'block' : 'none';
+  document.getElementById('waiting-turn-section').style.display = isMyTurn ? 'none'  : 'block';
+
+  if (isMyTurn) {
+    document.getElementById('word-reminder-val').textContent = myWord || '—';
+    const qBar = document.getElementById('question-reminder-bar');
+    if (mySetType === 'question' && myQuestion) {
+      qBar.style.display = 'block';
+      document.getElementById('question-reminder-val').textContent = myQuestion;
+      document.getElementById('word-reminder-bar').style.display = 'none';
+    } else {
+      qBar.style.display = 'none';
+      document.getElementById('word-reminder-bar').style.display = 'block';
+    }
+    document.getElementById('desc-input').value = '';
+    setTimeout(() => document.getElementById('desc-input').focus(), 100);
+  } else {
+    renderOrderTable('order-list-live', describeOrder, currentId);
+  }
+  renderFeed('desc-feed');
+}
+
+function showVoting() {
+  showScreen('voting');
+  const list = document.getElementById('vote-list');
+  list.innerHTML = '';
+  if (!roomState) return;
+  roomState.players.forEach(p => {
+    if (p.id === myId) return;
+    const row = document.createElement('div');
+    row.className = 'vote-row';
+    row.dataset.id = p.id;
+    row.innerHTML = `
+      <div class="vote-init">${esc(p.name[0].toUpperCase())}</div>
+      <div class="vote-name">${esc(p.name)}</div>
+      <div class="vote-check"></div>
+    `;
+    row.onclick = () => castVote(p.id, row);
+    list.appendChild(row);
+  });
+  renderFeed('vote-feed');
+  updateVoteBar(0, roomState.players.length);
+}
+
+function castVote(targetId, row) {
+  if (myVote) return;
+  myVote = targetId;
+  document.querySelectorAll('.vote-row').forEach(r => {
+    r.classList.add('disabled');
+    r.onclick = null;
+  });
+  row.classList.add('selected');
+  row.querySelector('.vote-check').textContent = '✓';
+  send({ type: 'SUBMIT_VOTE', roomCode: myRoomCode, targetId });
+  showToast('Vote submitted');
+}
+
+function updateVoteBar(count, total) {
+  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+  document.getElementById('vote-bar').style.width = pct + '%';
+  document.getElementById('vote-status').textContent = `${count} of ${total} voted`;
+}
+
+function showResult(msg) {
+  showScreen('result');
+  const won = msg.isImposterEliminated;
+  document.getElementById('result-icon').textContent    = won ? '🕵️' : '😈';
+  document.getElementById('result-verdict').textContent = won ? 'Imposter Caught' : 'Imposter Escapes';
+  document.getElementById('result-verdict').className   = 'result-verdict ' + (won ? 'win' : 'lose');
+  document.getElementById('result-desc').textContent    = won
+    ? `${msg.eliminatedName} was voted out — and they were the imposter.`
+    : `${msg.eliminatedName} was voted out, but the real imposter walks free.`;
+
+  document.getElementById('result-majority-word').textContent = msg.majorityWord;
+  document.getElementById('result-imposter-word').textContent = msg.imposterWord;
+
+  // Question reveal
+  const qReveal = document.getElementById('result-question-reveal');
+  if (msg.setType === 'question' && msg.majorityQ) {
+    qReveal.style.display = 'block';
+    document.getElementById('rq-majority').textContent = msg.majorityQ;
+    document.getElementById('rq-imposter').textContent = msg.imposterQ;
+  } else {
+    qReveal.style.display = 'none';
+  }
+
+  // Imposter reveal
+  const impList = document.getElementById('imposter-reveal');
+  impList.innerHTML = '';
+  msg.imposterNames.forEach(name => {
+    const row = document.createElement('div');
+    row.className = 'player-row';
+    row.innerHTML = `
+      <div class="player-init">😈</div>
+      <div class="player-name-col">${esc(name)}<small>The Imposter</small></div>
+    `;
+    impList.appendChild(row);
+  });
+
+  if (isHost) {
+    document.getElementById('host-result-controls').style.display = 'flex';
+    document.getElementById('guest-result-waiting').style.display = 'none';
+  } else {
+    document.getElementById('host-result-controls').style.display = 'none';
+    document.getElementById('guest-result-waiting').style.display = 'block';
+  }
+}
+
+// ─── Feed ─────────────────────────────────────────────────────────────────────
+function renderFeed(elId) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (!descriptions.length) {
+    el.innerHTML = '<div class="feed-empty">No answers yet…</div>';
+    return;
+  }
+  el.innerHTML = '';
+  descriptions.forEach(d => {
+    const div = document.createElement('div');
+    div.className = 'feed-entry';
+    div.innerHTML = `<div class="feed-name">${esc(d.name)}</div><div class="feed-text">${esc(d.text)}</div>`;
+    el.appendChild(div);
+  });
+  el.scrollTop = el.scrollHeight;
+}
+
+// ─── Order table ──────────────────────────────────────────────────────────────
+function renderOrderTable(elId, order, currentId) {
+  const el = document.getElementById(elId);
+  if (!el || !roomState) return;
+  el.innerHTML = '';
+  const currentIdx = currentId ? order.indexOf(currentId) : -1;
+  order.forEach((pid, i) => {
+    const p = roomState.players.find(pl => pl.id === pid) || { name: '?' };
+    const isDone    = currentIdx > i;
+    const isActive  = pid === currentId;
+    const isYou     = pid === myId;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="turn-num">${i + 1}</td>
+      <td class="${isDone ? 'turn-done' : isActive ? 'turn-active' : ''}">${esc(p.name)}${isYou ? ' (you)' : ''}</td>
+      <td class="turn-marker ${isActive ? 'speaking' : ''}">${isActive ? 'Speaking' : isDone ? 'Done' : ''}</td>
+    `;
+    el.appendChild(tr);
+  });
+}
+
+// ─── Actions ──────────────────────────────────────────────────────────────────
+function createRoom() {
+  const name = document.getElementById('input-name').value.trim();
+  if (!name) return showToast('Enter your name first');
+  connect(() => send({ type: 'CREATE_ROOM', name }));
+}
+
+function joinRoom() {
+  const name = document.getElementById('input-name').value.trim();
+  const code = document.getElementById('input-code').value.trim().toUpperCase();
+  if (!name) return showToast('Enter your name first');
+  if (code.length !== 4) return showToast('Enter a 4-letter room code');
+  connect(() => send({ type: 'JOIN_ROOM', roomCode: code, name }));
+}
+
+function startGame()      { send({ type: 'START_GAME', roomCode: myRoomCode }); }
+function playAgain()      { send({ type: 'START_GAME', roomCode: myRoomCode }); }
+function backToLobby()    { send({ type: 'BACK_TO_LOBBY', roomCode: myRoomCode }); }
+
+function submitDescription() {
+  const text = document.getElementById('desc-input').value.trim();
+  if (!text) return showToast('Write something first');
+  send({ type: 'SUBMIT_DESCRIPTION', roomCode: myRoomCode, description: text });
+  document.getElementById('desc-input').value = '';
+  document.getElementById('your-turn-section').style.display = 'none';
+}
+
+function copyRoomCode() {
+  navigator.clipboard?.writeText(myRoomCode).then(() => showToast('Code copied!')).catch(() => {});
+}
+
+// ─── Utils ────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// Enter key support
+document.getElementById('input-name').addEventListener('keydown', e => { if (e.key === 'Enter') createRoom(); });
+document.getElementById('input-code').addEventListener('keydown', e => { if (e.key === 'Enter') joinRoom(); });
+</script>
+</body>
+</html>
+
